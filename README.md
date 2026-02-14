@@ -2,6 +2,12 @@
 
 Automated defect detection system for hazelnuts using machine learning. This project uses a two-stage approach: anomaly detection (One-Class SVM) followed by defect classification (Random Forest).
 
+## 🌐 Live Demo
+
+**Try the app online**: [https://hazelnut.streamlit.app/](https://hazelnut.streamlit.app/)
+
+Upload a hazelnut image and get instant defect detection results!
+
 ## 🎯 Features
 
 - **Anomaly Detection**: Identifies good vs defective hazelnuts
@@ -70,7 +76,6 @@ hazelnut_inspection_project/
 ├── train.py               # Training script
 ├── run_pipeline.py        # Full pipeline runner
 ├── requirements.txt       # Python dependencies
-├── DEPLOY.md              # Deployment guide
 ├── saved_models/          # Trained models (generated after training)
 │   ├── anomaly_detector.pkl
 │   └── defect_classifier.pkl
@@ -122,10 +127,27 @@ Edit `src/config.py` to adjust:
 
 ## 🌐 Deployment
 
-See [DEPLOY.md](DEPLOY.md) for detailed deployment instructions including:
-- Local deployment
-- Streamlit Cloud deployment
-- Troubleshooting guide
+### Live App
+The application is deployed on Streamlit Cloud: **[https://hazelnut.streamlit.app/](https://hazelnut.streamlit.app/)**
+
+### Local Deployment
+
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Train models (if not already done):
+   ```bash
+   python train.py
+   ```
+
+3. Run the Streamlit app:
+   ```bash
+   streamlit run app.py
+   ```
+
+The app will open at `http://localhost:8501`
 
 ## 📝 Usage
 
