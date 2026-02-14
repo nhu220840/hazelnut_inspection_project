@@ -23,11 +23,11 @@ data/processed/
 # !data/.gitkeep
 
 # 5. Saved Models (Model files are very large)
-saved_models/
-models/
-*.pkl
-*.h5
-*.pth
+# saved_models/
+# models/
+# *.pkl
+# *.h5
+# *.pth
 
 # 6. Outputs & Logs (Run results, chart images)
 outputs/

@@ -1,8 +1,10 @@
 opencv-python
 scikit-learn
+scikit-image
 pandas
 numpy
 matplotlib
 seaborn
 joblib
 streamlit
+Pillow
