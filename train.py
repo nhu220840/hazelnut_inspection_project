@@ -1,29 +1,22 @@
 import os
 import cv2
 import glob
-import numpy as np
-import pandas as pd  # Used to display data statistics table nicely
+import pandas as pd
 from src.preprocessing import remove_background
 from src.features import extract_features
 from src.models import AnomalyDetector, DefectClassifier
-from src.augmentation import augment_image # <--- [NEW] Import new module
+from src.augmentation import augment_image
 from src import config
-
-# ... (Keep the old load_images_and_extract_features function if desired, or use the new logic below)
 
 def process_single_image(img):
     """Helper function: Process 1 image -> Return feature vector"""
     processed_img, mask = remove_background(img)
     try:
-        # extract_features needs mask to remove black background
         return extract_features(processed_img, mask)
     except:
         return None
 
 def main():
-    # ==========================================
-    # STAGE 1: TRAINING ONE-CLASS SVM (UNCHANGED)
-    # ==========================================
     print("\n=== STAGE 1: TRAINING ANOMALY DETECTOR ===")
     train_good_path = os.path.join(config.DATA_PATH, "train", "good")
     image_paths = glob.glob(os.path.join(train_good_path, "*.png"))
@@ -39,16 +32,12 @@ def main():
             X_good.append(feat)
             
     if X_good:
-        # Note: Remember to adjust nu=0.2 in src/models.py as discussed earlier
         svm_model = AnomalyDetector()
         svm_model.train(X_good) 
         svm_model.save("anomaly_detector.pkl")
     else:
         print("❌ Error: No train/good data found")
 
-    # ==========================================
-    # STAGE 2: TRAINING RANDOM FOREST (WITH AUGMENTATION)
-    # ==========================================
     print("\n=== STAGE 2: TRAINING DEFECT CLASSIFIER WITH AUGMENTATION ===")
     
     defect_types = ['crack', 'cut', 'hole', 'print']
@@ -56,8 +45,6 @@ def main():
     y_defects = []
     
     test_root_path = os.path.join(config.DATA_PATH, "test")
-    
-    # Statistics table for report
     stats = []
 
     for idx, defect_name in enumerate(defect_types):
@@ -73,18 +60,14 @@ def main():
             img = cv2.imread(path)
             if img is None: continue
             
-            # --- [NEW] DATA AUGMENTATION STEP ---
-            # Create 6 variants from 1 original image
             aug_imgs = augment_image(img)
             
-            # Extract features for all 6 images
             for aug_img in aug_imgs:
                 feat = process_single_image(aug_img)
                 if feat is not None:
                     X_defects.append(feat)
                     y_defects.append(idx)
         
-        # Record statistics
         final_count = original_count * 6
         stats.append({
             "Defect Type": defect_name, 
@@ -92,7 +75,6 @@ def main():
             "After Augmentation": final_count
         })
 
-    # Print statistics table (Copy this table to report for nice formatting)
     print("\n📊 DATA STATISTICS AFTER AUGMENTATION:")
     df_stats = pd.DataFrame(stats)
     print(df_stats)

@@ -1,7 +1,6 @@
 import os
 import cv2
 import joblib
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix, classification_report
@@ -9,17 +8,12 @@ from src.preprocessing import remove_background
 from src.features import extract_features
 from src import config
 
-# --- CONFIGURATION ---
-# Redefine label mapping to match training
 LABEL_MAP = {0: 'crack', 1: 'cut', 2: 'hole', 3: 'print'}
-# Add 'good' label for overall evaluation
-FULL_LABEL_MAP = {0: 'crack', 1: 'cut', 2: 'hole', 3: 'print', 4: 'good'}
 
 def load_models():
     """Load 2 trained models from .pkl files"""
     print("⏳ Loading models...")
     try:
-        # Note: We save the pipeline, so when loading we get the pipeline object
         svm_path = os.path.join(config.MODEL_PATH, "anomaly_detector.pkl")
         rf_path = os.path.join(config.MODEL_PATH, "defect_classifier.pkl")
         
@@ -32,27 +26,20 @@ def load_models():
         exit()
 
 def predict_single_image(img, svm_model, rf_model):
-    """
-    Prediction function for a single image (2-stage pipeline)
-    """
-    # 1. Preprocessing
+    """Prediction function for a single image (2-stage pipeline)"""
     processed_img, mask = remove_background(img)
     
-    # 2. Feature extraction
     try:
         feats = extract_features(processed_img, mask)
-        feats = feats.reshape(1, -1) # Reshape to (1, n_features) for prediction
-    except Exception as e:
+        feats = feats.reshape(1, -1)
+    except Exception:
         return "error", "error"
 
-    # 3. Stage 1: Anomaly Detection
-    # SVM output: 1 (Inlier/Good), -1 (Outlier/Defect)
     anomaly_score = svm_model.predict(feats)[0]
     
     if anomaly_score == 1:
-        return "good", "good" # Concluded as Good, no need for stage 2
+        return "good", "good"
     else:
-        # 4. Stage 2: Defect Classification
         defect_code = rf_model.predict(feats)[0]
         defect_name = LABEL_MAP.get(defect_code, "unknown")
         return "defect", defect_name
@@ -63,8 +50,8 @@ def evaluate_system():
     test_root = os.path.join(config.DATA_PATH, "test")
     categories = ['good', 'crack', 'cut', 'hole', 'print']
     
-    y_true = [] # True labels
-    y_pred = [] # Predicted labels
+    y_true = []
+    y_pred = []
     
     print("\n🚀 Starting test on Test set...\n")
     
@@ -79,22 +66,17 @@ def evaluate_system():
             img_path = os.path.join(folder_path, img_name)
             img = cv2.imread(img_path)
             
-            # --- RUN PREDICTION ---
-            is_good, final_label = predict_single_image(img, svm_model, rf_model)
+            _, final_label = predict_single_image(img, svm_model, rf_model)
             
-            # Record results
             y_true.append(category)
             y_pred.append(final_label)
 
-    # --- CALCULATE & DISPLAY RESULTS ---
     print("\n" + "="*40)
     print("📊 EVALUATION REPORT")
     print("="*40)
     
-    # 1. Classification Report (Text)
     print(classification_report(y_true, y_pred, zero_division=0))
     
-    # 2. Plot Confusion Matrix
     cm = confusion_matrix(y_true, y_pred, labels=categories)
     
     plt.figure(figsize=(10, 8))
@@ -104,7 +86,6 @@ def evaluate_system():
     plt.ylabel('True Label')
     plt.title('Confusion Matrix - Hazelnut Inspection System')
     
-    # Save image for report
     if not os.path.exists("outputs"): os.makedirs("outputs")
     save_path = "outputs/confusion_matrix.png"
     plt.savefig(save_path)
