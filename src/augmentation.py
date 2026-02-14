@@ -3,32 +3,32 @@ import numpy as np
 
 def augment_image(image):
     """
-    Hàm nhân bản dữ liệu ảnh thủ công bằng OpenCV.
-    Input: 1 ảnh gốc (OpenCV BGR).
-    Output: List gồm 6 biến thể (Gốc + 5 ảnh biến đổi).
+    Function to manually augment image data using OpenCV.
+    Input: 1 original image (OpenCV BGR).
+    Output: List of 6 variants (Original + 5 transformed images).
     """
     augmented_images = []
     
-    # 1. Giữ nguyên ảnh gốc
+    # 1. Keep original image
     augmented_images.append(image)
     
-    # 2. Xoay 90 độ (Chiều kim đồng hồ)
+    # 2. Rotate 90 degrees (Clockwise)
     img_90 = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
     augmented_images.append(img_90)
     
-    # 3. Xoay 180 độ
+    # 3. Rotate 180 degrees
     img_180 = cv2.rotate(image, cv2.ROTATE_180)
     augmented_images.append(img_180)
     
-    # 4. Xoay 270 độ (Ngược chiều kim đồng hồ)
+    # 4. Rotate 270 degrees (Counter-clockwise)
     img_270 = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
     augmented_images.append(img_270)
     
-    # 5. Lật ngang (Horizontal Flip) - Giống soi gương
+    # 5. Horizontal Flip - Like a mirror
     img_flip_h = cv2.flip(image, 1)
     augmented_images.append(img_flip_h)
 
-    # 6. Lật dọc (Vertical Flip)
+    # 6. Vertical Flip
     img_flip_v = cv2.flip(image, 0)
     augmented_images.append(img_flip_v)
     

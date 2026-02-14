@@ -2,27 +2,27 @@ import os
 import cv2
 import glob
 import numpy as np
-import pandas as pd  # Dùng để hiển thị bảng thống kê dữ liệu cho đẹp
+import pandas as pd  # Used to display data statistics table nicely
 from src.preprocessing import remove_background
 from src.features import extract_features
 from src.models import AnomalyDetector, DefectClassifier
-from src.augmentation import augment_image # <--- [NEW] Import module mới
+from src.augmentation import augment_image # <--- [NEW] Import new module
 from src import config
 
-# ... (Giữ nguyên hàm load_images_and_extract_features cũ nếu muốn, hoặc dùng logic mới dưới đây)
+# ... (Keep the old load_images_and_extract_features function if desired, or use the new logic below)
 
 def process_single_image(img):
-    """Hàm phụ trợ: Xử lý 1 ảnh -> Trả về feature vector"""
+    """Helper function: Process 1 image -> Return feature vector"""
     processed_img, mask = remove_background(img)
     try:
-        # extract_features cần mask để loại bỏ nền đen
+        # extract_features needs mask to remove black background
         return extract_features(processed_img, mask)
     except:
         return None
 
 def main():
     # ==========================================
-    # GIAI ĐOẠN 1: HUẤN LUYỆN ONE-CLASS SVM (GIỮ NGUYÊN)
+    # STAGE 1: TRAINING ONE-CLASS SVM (UNCHANGED)
     # ==========================================
     print("\n=== STAGE 1: TRAINING ANOMALY DETECTOR ===")
     train_good_path = os.path.join(config.DATA_PATH, "train", "good")
@@ -39,15 +39,15 @@ def main():
             X_good.append(feat)
             
     if X_good:
-        # Lưu ý: Nhớ chỉnh nu=0.2 trong src/models.py như đã bàn ở bước trước
+        # Note: Remember to adjust nu=0.2 in src/models.py as discussed earlier
         svm_model = AnomalyDetector()
         svm_model.train(X_good) 
         svm_model.save("anomaly_detector.pkl")
     else:
-        print("❌ Lỗi: Không tìm thấy dữ liệu train/good")
+        print("❌ Error: No train/good data found")
 
     # ==========================================
-    # GIAI ĐOẠN 2: HUẤN LUYỆN RANDOM FOREST (CÓ AUGMENTATION)
+    # STAGE 2: TRAINING RANDOM FOREST (WITH AUGMENTATION)
     # ==========================================
     print("\n=== STAGE 2: TRAINING DEFECT CLASSIFIER WITH AUGMENTATION ===")
     
@@ -57,7 +57,7 @@ def main():
     
     test_root_path = os.path.join(config.DATA_PATH, "test")
     
-    # Bảng thống kê để đưa vào báo cáo
+    # Statistics table for report
     stats = []
 
     for idx, defect_name in enumerate(defect_types):
@@ -73,37 +73,37 @@ def main():
             img = cv2.imread(path)
             if img is None: continue
             
-            # --- [NEW] BƯỚC NHÂN BẢN DỮ LIỆU ---
-            # Tạo ra 6 biến thể từ 1 ảnh gốc
+            # --- [NEW] DATA AUGMENTATION STEP ---
+            # Create 6 variants from 1 original image
             aug_imgs = augment_image(img)
             
-            # Trích xuất đặc trưng cho cả 6 ảnh này
+            # Extract features for all 6 images
             for aug_img in aug_imgs:
                 feat = process_single_image(aug_img)
                 if feat is not None:
                     X_defects.append(feat)
                     y_defects.append(idx)
         
-        # Ghi lại thống kê
+        # Record statistics
         final_count = original_count * 6
         stats.append({
-            "Loại lỗi": defect_name, 
-            "Số lượng gốc": original_count, 
-            "Sau Augmentation": final_count
+            "Defect Type": defect_name, 
+            "Original Count": original_count, 
+            "After Augmentation": final_count
         })
 
-    # In bảng thống kê ra màn hình (Copy bảng này vào báo cáo rất đẹp)
-    print("\n📊 BẢNG THỐNG KÊ DỮ LIỆU SAU KHI NHÂN BẢN:")
+    # Print statistics table (Copy this table to report for nice formatting)
+    print("\n📊 DATA STATISTICS AFTER AUGMENTATION:")
     df_stats = pd.DataFrame(stats)
     print(df_stats)
-    print(f"\nTổng cộng mẫu để train Random Forest: {len(X_defects)}")
+    print(f"\nTotal samples for Random Forest training: {len(X_defects)}")
 
     if X_defects:
         rf_model = DefectClassifier()
         rf_model.train(X_defects, y_defects)
         rf_model.save("defect_classifier.pkl")
     else:
-        print("❌ Lỗi: Không tìm thấy dữ liệu lỗi (defect)!")
+        print("❌ Error: No defect data found!")
 
 if __name__ == "__main__":
     main()

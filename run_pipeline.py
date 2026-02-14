@@ -2,19 +2,19 @@ import sys
 import time
 import os
 
-# Import các hàm chính từ 2 file train.py và main.py
-# Lưu ý: Python sẽ tự tìm file train.py và main.py trong cùng thư mục
+# Import main functions from 2 files train.py and main.py
+# Note: Python will automatically find train.py and main.py in the same directory
 try:
     from train import main as train_model
     from main import evaluate_system
 except ImportError as e:
-    print("❌ LỖI: Không tìm thấy file 'train.py' hoặc 'main.py'.")
-    print(f"Chi tiết: {e}")
+    print("❌ ERROR: Cannot find 'train.py' or 'main.py' file.")
+    print(f"Details: {e}")
     sys.exit(1)
 
 def run_full_pipeline():
     """
-    Hàm thực thi toàn bộ quy trình End-to-End
+    Function to execute the entire End-to-End process
     """
     print("==================================================")
     print("🌰  HAZELNUT INSPECTION SYSTEM - AUTOMATED PIPELINE")
@@ -22,36 +22,36 @@ def run_full_pipeline():
     
     start_total = time.time()
 
-    # --- BƯỚC 1: HUẤN LUYỆN (TRAINING) ---
+    # --- STEP 1: TRAINING ---
     print("\n" + "="*30)
     print("🚀 [STEP 1/2] STARTING TRAINING PHASE...")
     print("="*30)
     start_train = time.time()
     
     try:
-        # Gọi hàm main() bên trong train.py
+        # Call main() function inside train.py
         train_model()
         print(f"✅ Training completed in {time.time() - start_train:.2f} seconds.")
     except Exception as e:
         print(f"❌ Training Failed! Error: {e}")
-        # Nếu train lỗi thì dừng ngay, không đánh giá nữa
+        # If training fails, stop immediately, don't evaluate
         sys.exit(1)
 
-    # --- BƯỚC 2: ĐÁNH GIÁ (EVALUATION) ---
+    # --- STEP 2: EVALUATION ---
     print("\n" + "="*30)
     print("📊 [STEP 2/2] STARTING EVALUATION PHASE...")
     print("="*30)
     start_eval = time.time()
     
     try:
-        # Gọi hàm evaluate_system() bên trong main.py
+        # Call evaluate_system() function inside main.py
         evaluate_system()
         print(f"✅ Evaluation completed in {time.time() - start_eval:.2f} seconds.")
     except Exception as e:
         print(f"❌ Evaluation Failed! Error: {e}")
         sys.exit(1)
 
-    # --- TỔNG KẾT ---
+    # --- SUMMARY ---
     total_duration = time.time() - start_total
     print("\n==================================================")
     print(f"✨ PIPELINE FINISHED SUCCESSFULLY!")

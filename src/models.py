@@ -9,22 +9,22 @@ from src import config
 
 class AnomalyDetector:
     def __init__(self):
-        # CẤU HÌNH TỐI ƯU (Best Config: Accuracy ~75%)
-        # 1. Tắt PCA (để giữ chi tiết vết nứt/cắt)
-        # 2. nu=0.25 (Mức cân bằng, không quá lỏng như 0.05, không quá gắt như 0.3)
+        # OPTIMAL CONFIGURATION (Best Config: Accuracy ~75%)
+        # 1. Disable PCA (to preserve crack/cut details)
+        # 2. nu=0.25 (Balanced level, not too loose like 0.05, not too strict like 0.3)
         self.model = Pipeline([
             ('scaler', StandardScaler()),
-            # ('pca', PCA(n_components=0.99)), # <--- ĐÃ TẮT PCA
+            # ('pca', PCA(n_components=0.99)), # <--- PCA DISABLED
             ('svm', OneClassSVM(kernel='rbf', nu=0.25, gamma='scale')) 
         ])
 
     def train(self, X_train):
-        print(f"Training Anomaly Detector với {len(X_train)} mẫu...")
+        print(f"Training Anomaly Detector with {len(X_train)} samples...")
         self.model.fit(X_train)
         print("Done.")
 
     def save(self, filename="anomaly_detector.pkl"):
-        # --- FIX LỖI: Tự động tạo thư mục nếu chưa có ---
+        # --- FIX: Automatically create directory if it doesn't exist ---
         if not os.path.exists(config.MODEL_PATH):
             os.makedirs(config.MODEL_PATH)
         # -----------------------------------------------
@@ -35,22 +35,22 @@ class AnomalyDetector:
 
 class DefectClassifier:
     """
-    Giai đoạn 2: Phân loại lỗi (Random Forest)
-    Nhiệm vụ: Nếu đã biết là lỗi, thì đó là lỗi gì? (Print, Cut, Crack...)
+    Stage 2: Defect Classification (Random Forest)
+    Task: If it's known to be a defect, what type is it? (Print, Cut, Crack...)
     """
     def __init__(self):
-        # Thêm class_weight='balanced' để chú ý hơn đến các lỗi ít gặp (Hole, Cut)
+        # Add class_weight='balanced' to pay more attention to rare defects (Hole, Cut)
         self.model = RandomForestClassifier(n_estimators=100, 
                                             class_weight='balanced',
                                             random_state=42)
 
     def train(self, X_train, y_train):
-        print(f"Training Defect Classifier với {len(X_train)} mẫu...")
+        print(f"Training Defect Classifier with {len(X_train)} samples...")
         self.model.fit(X_train, y_train)
         print("Done.")
 
     def save(self, filename="defect_classifier.pkl"):
-        # --- FIX LỖI: Tự động tạo thư mục nếu chưa có ---
+        # --- FIX: Automatically create directory if it doesn't exist ---
         if not os.path.exists(config.MODEL_PATH):
             os.makedirs(config.MODEL_PATH)
         # -----------------------------------------------

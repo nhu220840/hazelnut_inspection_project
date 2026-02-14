@@ -1,20 +1,20 @@
 import cv2
 import numpy as np
 from skimage.feature import hog
-from src import config # Import tham số từ config
+from src import config # Import parameters from config
 
 def extract_hog_features(image):
     """
-    Trích xuất đặc trưng hình dáng (HOG)
+    Extract shape features (HOG)
     """
-    # 1. Resize về kích thước cố định (bắt buộc với HOG)
+    # 1. Resize to fixed size (required for HOG)
     resized = cv2.resize(image, config.RESIZE_DIM)
     
-    # 2. Chuyển sang ảnh xám
+    # 2. Convert to grayscale
     gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
     
-    # 3. Tính HOG
-    # visualize=False: Chỉ lấy vector dữ liệu, không lấy ảnh để vẽ
+    # 3. Calculate HOG
+    # visualize=False: Only get data vector, don't get image for visualization
     hog_feats = hog(gray, 
                     orientations=config.HOG_ORIENTATIONS, 
                     pixels_per_cell=config.HOG_PIXELS_PER_CELL,
@@ -24,20 +24,20 @@ def extract_hog_features(image):
 
 def extract_color_features(image, mask=None):
     """
-    Trích xuất đặc trưng màu sắc (Color Histogram)
+    Extract color features (Color Histogram)
     """
-    # Nếu có mask, resize mask cho khớp với ảnh (nếu ảnh bị resize trước đó)
-    # Nhưng ở đây ta tính trên ảnh gốc đã crop nên không cần resize ảnh
+    # If mask exists, resize mask to match image (if image was resized earlier)
+    # But here we calculate on the original cropped image so no need to resize image
     
     hist_feats = []
     
-    # Tính histogram cho 3 kênh màu: Blue, Green, Red
+    # Calculate histogram for 3 color channels: Blue, Green, Red
     for channel in range(3):
         # cv2.calcHist(images, channels, mask, histSize, ranges)
-        # QUAN TRỌNG: Truyền 'mask' vào để KHÔNG tính màu đen của nền
+        # IMPORTANT: Pass 'mask' to NOT calculate black background color
         hist = cv2.calcHist([image], [channel], mask, [config.HIST_BINS], [0, 256])
         
-        # Chuẩn hóa (Normalize) để ảnh to hay nhỏ thì tổng giá trị vẫn tương đương nhau
+        # Normalize so that large or small images have equivalent total values
         cv2.normalize(hist, hist)
         
         hist_feats.extend(hist.flatten())
@@ -46,16 +46,16 @@ def extract_color_features(image, mask=None):
 
 def extract_features(image, mask=None):
     """
-    Hàm tổng hợp: Gọi cả 2 hàm trên và nối lại thành 1 vector duy nhất
+    Summary function: Call both functions above and concatenate into 1 single vector
     """
-    # 1. Tính HOG
+    # 1. Calculate HOG
     hog_vector = extract_hog_features(image)
     
-    # 2. Tính Color (cần truyền mask để loại bỏ nền đen)
+    # 2. Calculate Color (need to pass mask to remove black background)
     color_vector = extract_color_features(image, mask)
     
-    # 3. Nối lại (Concatenate)
-    # Ví dụ: HOG có 1000 số + Color có 96 số = Vector 1096 chiều
+    # 3. Concatenate
+    # Example: HOG has 1000 numbers + Color has 96 numbers = 1096-dimensional vector
     final_vector = np.hstack([hog_vector, color_vector])
     
     return final_vector

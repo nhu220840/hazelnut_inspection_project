@@ -1,47 +1,47 @@
-# 1. Python & Cache (File rác khi chạy code)
+# 1. Python & Cache (Temporary files when running code)
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# 2. Virtual Environment (Môi trường ảo)
-# Tên thư mục môi trường ảo của bạn (như user@ubuntu đã hiển thị)
+# 2. Virtual Environment
+# Your virtual environment directory name (as shown by user@ubuntu)
 py_envs/
 venv/
 env/
 .env
 
-# 3. Jupyter Notebook Checkpoints (File tạm của Notebook)
+# 3. Jupyter Notebook Checkpoints (Temporary Notebook files)
 .ipynb_checkpoints/
 
-# 4. Data (QUAN TRỌNG: Không commit dữ liệu ảnh lên Git)
-# Chỉ giữ lại cấu trúc thư mục, bỏ qua nội dung bên trong
+# 4. Data (IMPORTANT: Do not commit image data to Git)
+# Only keep directory structure, ignore contents inside
 data/raw/
 data/processed/
-# Nếu bạn muốn giữ lại folder data nhưng không lấy file, có thể dùng:
+# If you want to keep the data folder but not the files, you can use:
 # data/*
 # !data/.gitkeep
 
-# 5. Saved Models (File model rất nặng)
+# 5. Saved Models (Model files are very large)
 saved_models/
 models/
 *.pkl
 *.h5
 *.pth
 
-# 6. Outputs & Logs (Kết quả chạy, ảnh biểu đồ)
+# 6. Outputs & Logs (Run results, chart images)
 outputs/
 logs/
 *.log
 
-# 7. IDE & System Files (Cấu hình máy cá nhân)
+# 7. IDE & System Files (Personal machine configuration)
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 
-# 8. Streamlit (Nếu có deploy sau này)
+# 8. Streamlit (If deploying later)
 .streamlit/secrets.toml
 
-# 9. Khác
+# 9. Others
 __MACOSX/
