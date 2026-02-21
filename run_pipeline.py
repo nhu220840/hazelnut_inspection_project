@@ -9,8 +9,9 @@ except ImportError as e:
     print(f"Details: {e}")
     sys.exit(1)
 
+
 def run_full_pipeline():
-    """Function to execute the entire End-to-End process"""
+    """Run training then evaluation; print timing and exit on error."""
     print("==================================================")
     print("🌰  HAZELNUT INSPECTION SYSTEM - AUTOMATED PIPELINE")
     print("==================================================")

@@ -8,11 +8,12 @@ from src.preprocessing import remove_background
 from src.features import extract_features
 from src import config
 
-LABEL_MAP = {0: 'crack', 1: 'cut', 2: 'hole', 3: 'print'}
+LABEL_MAP = {i: name for i, name in enumerate(config.DEFECT_TYPES)}
+
 
 @st.cache_resource
 def load_models():
-    """Load trained models from .pkl files"""
+    """Load saved SVM and RF models; show error and stop if files are missing."""
     try:
         svm_path = os.path.join(config.MODEL_PATH, "anomaly_detector.pkl")
         rf_path = os.path.join(config.MODEL_PATH, "defect_classifier.pkl")
@@ -24,8 +25,9 @@ def load_models():
         st.error("❌ Model files not found. Please run train.py first to train the models.")
         st.stop()
 
+
 def predict_image(img, svm_model, rf_model):
-    """Predict defect type for a single image"""
+    """Two-stage prediction (SVM then RF). Returns (status, label, processed_img, mask)."""
     processed_img, mask = remove_background(img)
     
     try:
@@ -43,7 +45,9 @@ def predict_image(img, svm_model, rf_model):
         defect_name = LABEL_MAP.get(defect_code, "unknown")
         return "defect", defect_name, processed_img, mask
 
+
 def main():
+    """Streamlit app: upload image, run inspection, show result and processed image."""
     st.set_page_config(
         page_title="Hazelnut Inspection System",
         page_icon="🌰",
@@ -53,13 +57,11 @@ def main():
     st.title("🌰 Hazelnut Inspection System")
     st.markdown("### Automated Defect Detection using Machine Learning")
     st.markdown("---")
-    
-    # Load models
+
     with st.spinner("Loading models..."):
         svm_model, rf_model = load_models()
     st.success("✅ Models loaded successfully!")
-    
-    # Sidebar
+
     st.sidebar.header("📤 Upload Image")
     uploaded_file = st.sidebar.file_uploader(
         "Choose a hazelnut image",
@@ -76,41 +78,29 @@ def main():
     - **Hole**: Holes in the nut
     - **Print**: Ink marks/stains
     """)
-    
-    # Main content
+
     if uploaded_file is not None:
-        # Read image
         image = Image.open(uploaded_file)
         img_array = np.array(image)
-        
-        # Convert PIL to OpenCV format (RGB to BGR)
         if len(img_array.shape) == 3:
             img_cv = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
         else:
             img_cv = img_array
         
         col1, col2 = st.columns(2)
-        
         with col1:
             st.subheader("📷 Original Image")
             st.image(image, use_container_width=True)
-        
-        # Predict
         with st.spinner("Analyzing image..."):
             status, label, processed_img, mask = predict_image(img_cv, svm_model, rf_model)
-        
         with col2:
             st.subheader("🔍 Processed Image")
             if processed_img is not None:
                 processed_rgb = cv2.cvtColor(processed_img, cv2.COLOR_BGR2RGB)
                 st.image(processed_rgb, use_container_width=True)
-        
-        # Results
         st.markdown("---")
         st.subheader("📊 Prediction Results")
-        
         col3, col4, col5 = st.columns(3)
-        
         with col3:
             if status == "good":
                 st.success(f"**Status**: ✅ {status.upper()}")
@@ -127,12 +117,9 @@ def main():
                 st.warning(f"**Label**: 🔴 {label.upper()}")
             else:
                 st.error(f"**Label**: ❓ {label.upper()}")
-        
         with col5:
             if mask is not None:
                 st.image(mask, use_container_width=True, caption="Binary Mask")
-        
-        # Additional info
         if status == "good":
             st.success("🎉 This hazelnut appears to be in good condition with no defects detected!")
         elif status == "defect":

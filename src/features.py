@@ -3,8 +3,9 @@ import numpy as np
 from skimage.feature import hog
 from src import config
 
+
 def extract_hog_features(image):
-    """Extract shape features (HOG)"""
+    """Compute HOG descriptor on resized grayscale image."""
     resized = cv2.resize(image, config.RESIZE_DIM)
     gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
     
@@ -15,8 +16,9 @@ def extract_hog_features(image):
                     visualize=False)
     return hog_feats
 
+
 def extract_color_features(image, mask=None):
-    """Extract color features (Color Histogram)"""
+    """Compute normalized per-channel histograms (BGR), optionally masked."""
     hist_feats = []
     
     for channel in range(3):
@@ -26,8 +28,9 @@ def extract_color_features(image, mask=None):
         
     return np.array(hist_feats)
 
+
 def extract_features(image, mask=None):
-    """Call both functions above and concatenate into 1 single vector"""
+    """Concatenate HOG and color histogram features into one vector."""
     hog_vector = extract_hog_features(image)
     color_vector = extract_color_features(image, mask)
     final_vector = np.hstack([hog_vector, color_vector])

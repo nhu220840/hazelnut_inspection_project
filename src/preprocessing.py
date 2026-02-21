@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
 
+
 def remove_background(image, return_full_mask=False, padding=0):
+    """Segment foreground via Otsu + morphology, crop to largest contour. Returns (cropped_image, mask)."""
     h0, w0 = image.shape[:2]
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
